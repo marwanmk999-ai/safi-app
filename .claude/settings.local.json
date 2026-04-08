@@ -39,7 +39,14 @@
       "Bash(export LC_ALL=en_US.UTF-8)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://192.168.1.11:3000/login)",
       "Bash(ipconfig getifaddr:*)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://172.20.214.128:3000/login)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://172.20.214.128:3000/login)",
+      "Bash(gh repo:*)",
+      "Bash(brew install:*)",
+      "Bash(gh auth:*)",
+      "Bash(npm i:*)",
+      "Bash(vercel --version)",
+      "Bash(vercel env:*)",
+      "Bash(vercel --prod --yes)"
     ]
   }
 }

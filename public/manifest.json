@@ -1,0 +1,22 @@
+{
+  "name": "صافي | Safi",
+  "short_name": "صافي",
+  "description": "Financial management for freelancers",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#070b14",
+  "theme_color": "#070b14",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/Logo AR.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/Logo AR.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

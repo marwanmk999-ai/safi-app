@@ -7,8 +7,7 @@ const config: CapacitorConfig = {
   server: {
     // For development: point to your local dev server
     // Comment this out for production builds
-    url: 'http://localhost:3000',
-    cleartext: true,
+    url: 'https://safi-app.vercel.app',
   },
   ios: {
     contentInset: 'automatic',
