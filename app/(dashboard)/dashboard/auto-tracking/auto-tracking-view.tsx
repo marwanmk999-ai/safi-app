@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation"
 import { useI18n } from "@/lib/i18n/context"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
-import { Zap, Copy, Check, Trash2, Plus, KeyRound, ShieldCheck, Loader2, AlertTriangle, ChevronDown } from "lucide-react"
+import { buildShortcutPlist } from "@/lib/shortcut"
+import { Zap, Copy, Check, Trash2, Plus, KeyRound, ShieldCheck, Loader2, AlertTriangle, ChevronDown, Download } from "lucide-react"
 
 interface DeviceToken {
   id: string
@@ -50,26 +51,27 @@ export function AutoTrackingView({
     endpointLabel: "رابط الاستقبال (Endpoint)",
     genBtn: "أنشئ توكن جهاز جديد",
     generating: "جارٍ الإنشاء…",
-    freshTitle: "توكنك الجديد — انسخه الآن",
-    freshWarn: "لن يظهر مرة ثانية. الصقه في اختصار الآيفون، ثم لا تحتاجه بعدها.",
+    freshTitle: "توكنك الجديد",
+    freshWarn: "لن يظهر مرة ثانية. الأسهل: نزّل الاختصار الجاهز (فيه التوكن مدفون) بدل نسخه يدويًا.",
     copy: "نسخ",
     copied: "تم النسخ ✓",
+    dlBtn: "نزّل الاختصار الجاهز",
+    dlHint: "ملف .shortcut فيه الرابط وتوكنك جاهزَين. افتحه على الآيفون → يُستورَد في تطبيق الاختصارات مباشرة.",
     active: "التوكنات الفعّالة",
     none: "لا توكنات بعد — أنشئ واحدًا للبدء.",
     created: "أُنشئ",
     lastUsed: "آخر استخدام",
     never: "لم يُستخدم بعد",
     revoke: "إلغاء",
-    stepsTitle: "كيف تربطه باختصار الآيفون؟",
+    stepsTitle: "بعد تنزيل الاختصار — خطوتان فقط",
     steps: [
-      "الاختصارات → Automation → New → Message → Sender contains: اسم مُرسِل بنكك (مثل QNB) → Run Immediately ✓",
-      "أضف إجراء «Get Contents of URL» بالرابط أعلاه، Method = POST",
-      "Headers: Authorization = Bearer ثم الصق التوكن",
-      "Request Body (JSON): rawText = Shortcut Input ، و source = ios_shortcut",
-      "أضف «Get Dictionary Value» → Key: message، ثم «Show Notification» بمخرجاته",
+      "افتح الملف المُنزَّل → «إضافة اختصار» (لو ظهر تحذير: الإعدادات ← الاختصارات ← فعّل Allow Untrusted Shortcuts، ثم أعد الاستيراد).",
+      "جرّبه: افتح الاختصار «Safi Auto-Track»، شغّله، والصق رسالة بنك في المدخل — يجب أن يظهر إشعار «✓ سجلنالك…».",
+      "الأتمتة: الاختصارات ← Automation ← + ← Message ← Sender contains: اسم بنكك (مثل QNB) ← Run Immediately ✓",
+      "في الأتمتة اختر إجراء «Run Shortcut» ← Safi Auto-Track ← Done. خلص!",
     ],
-    tip: "جرّبه يدويًا أولًا: اختصار بسيط فيه Text برسالة بنك وهمية قبل ربطه بأتمتة الرسائل.",
-    keyNote: "ملاحظة: لتشتغل، لازم مفتاح Anthropic يكون مضبوطًا في أسرار الدوال بـSupabase (ANTHROPIC_API_KEY).",
+    tip: "خطوة الأتمتة (عند وصول رسالة) لازم تُعمَل بيدك — Apple تمنع أي تطبيق من تركيبها تلقائيًا. لكنها ~4 نقرات بلا أي إعداد.",
+    keyNote: "ملاحظة: مفتاح Anthropic مضبوط بالفعل. لو ظهر «خطأ بالمحرك» تأكد من ضبطه في أسرار دوال Supabase.",
   } : {
     title: "Auto-Tracking",
     lead: "Set it up once, never log an expense again. Safi picks up your bank's debit alerts via an iPhone Shortcut, then logs and categorizes every expense automatically.",
@@ -77,30 +79,43 @@ export function AutoTrackingView({
     endpointLabel: "Endpoint URL",
     genBtn: "Generate new device token",
     generating: "Generating…",
-    freshTitle: "Your new token — copy it now",
-    freshWarn: "It won't be shown again. Paste it into your iPhone Shortcut, then you're done.",
+    freshTitle: "Your new token",
+    freshWarn: "It won't be shown again. Easiest path: download the ready-made Shortcut (token baked in) instead of copying by hand.",
     copy: "Copy",
     copied: "Copied ✓",
+    dlBtn: "Download ready-made Shortcut",
+    dlHint: "A .shortcut file with your URL + token already inside. Open it on your iPhone → it imports straight into the Shortcuts app.",
     active: "Active tokens",
     none: "No tokens yet — generate one to start.",
     created: "Created",
     lastUsed: "Last used",
     never: "Never used",
     revoke: "Revoke",
-    stepsTitle: "How to wire it into an iPhone Shortcut",
+    stepsTitle: "After downloading the Shortcut — just two things",
     steps: [
-      "Shortcuts → Automation → New → Message → Sender contains: your bank's sender (e.g. QNB) → Run Immediately ✓",
-      "Add 'Get Contents of URL' with the URL above, Method = POST",
-      "Headers: Authorization = Bearer then paste the token",
-      "Request Body (JSON): rawText = Shortcut Input, source = ios_shortcut",
-      "Add 'Get Dictionary Value' → Key: message, then 'Show Notification' with its output",
+      "Open the downloaded file → 'Add Shortcut' (if warned: Settings → Shortcuts → enable Allow Untrusted Shortcuts, then re-import).",
+      "Test it: open the 'Safi Auto-Track' shortcut, run it, paste a bank message as input — you should get a '✓ سجلنالك…' notification.",
+      "Automation: Shortcuts → Automation → + → Message → Sender contains: your bank (e.g. QNB) → Run Immediately ✓",
+      "In the automation pick 'Run Shortcut' → Safi Auto-Track → Done. That's it!",
     ],
-    tip: "Test it manually first: a simple Shortcut with a Text action holding a fake bank message, before wiring it to Message automation.",
-    keyNote: "Note: for this to work, the Anthropic key must be set in Supabase Edge Function secrets (ANTHROPIC_API_KEY).",
+    tip: "The message-received automation must be created by you — Apple blocks any app from installing it automatically. But it's ~4 taps with zero config.",
+    keyNote: "Note: the Anthropic key is already set. If you see an engine error, double-check it in Supabase Edge Function secrets.",
   }
 
   async function copy(text: string, id: string) {
     try { await navigator.clipboard.writeText(text); setCopied(id); setTimeout(() => setCopied(null), 1800) } catch {}
+  }
+
+  function downloadShortcut(rawToken: string) {
+    const plist = buildShortcutPlist(endpoint, rawToken)
+    const blob = new Blob([plist], { type: "application/octet-stream" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = "Safi Auto-Track.shortcut"
+    document.body.appendChild(a)
+    a.click()
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove() }, 1500)
   }
 
   async function generate() {
@@ -185,6 +200,12 @@ export function AutoTrackingView({
           <p className="text-xs text-amber-600 dark:text-amber-500 flex items-start gap-1.5">
             <AlertTriangle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" /> <span>{s.freshWarn}</span>
           </p>
+          <div className="pt-1 border-t border-primary/20 space-y-2">
+            <Button onClick={() => downloadShortcut(freshToken)} className="w-full h-11">
+              <Download className="h-5 w-5" /> <span className="ms-2">{s.dlBtn}</span>
+            </Button>
+            <p className="text-xs text-muted-foreground">{s.dlHint}</p>
+          </div>
         </div>
       )}
 
