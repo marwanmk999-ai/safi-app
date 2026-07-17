@@ -16,6 +16,7 @@ import {
   Target,
   Bell,
   Wallet,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -58,6 +59,7 @@ export function DashboardShell({ user, notifications = [], children }: Dashboard
 
   const navLinks = [
     { href: "/dashboard", label: t.dashboard, icon: LayoutDashboard },
+    { href: "/dashboard/auto-tracking", label: locale === "ar" ? "التسجيل التلقائي" : "Auto-Tracking", icon: Zap },
     { href: "/dashboard/transactions", label: t.transactions, icon: ArrowLeftRight },
     { href: "/dashboard/invoices", label: t.invoices, icon: FileText },
     { href: "/dashboard/clients", label: t.clients, icon: Users },
